@@ -21,14 +21,17 @@ export function normalizeResults(payload, limit) {
     throw new Error("Unexpected GCrawlAI search response: results must be an array");
   }
   return payload.results
-    .filter((result) => result && typeof result.url === "string" &&
+    .map((result) => {
+      const url = typeof result?.link === "string" ? result.link : result?.url;
+      return {
+        url,
+        title: typeof result?.title === "string" ? result.title : "",
+        description: typeof result?.description === "string" ? result.description : ""
+      };
+    })
+    .filter((result) => typeof result.url === "string" &&
       /^https?:\/\//i.test(result.url) && result.url.length > 0)
-    .slice(0, limit)
-    .map((result) => ({
-      url: result.url,
-      title: typeof result.title === "string" ? result.title : "",
-      description: typeof result.description === "string" ? result.description : ""
-    }));
+    .slice(0, limit);
 }
 
 export async function handleRequest(request, env, fetchImpl = fetch) {
