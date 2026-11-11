@@ -1,7 +1,6 @@
-name = "gcrawlai-search-bridge"
+name = "gcrawlai-cloudflare-search"
 main = "src/index.js"
 compatibility_date = "2026-11-01"
 
-# Verify public API routing before deployment.
 [vars]
 GCRAWLAI_SEARCH_URL = "https://gcrawlai.com/gc/api/v1/search"
