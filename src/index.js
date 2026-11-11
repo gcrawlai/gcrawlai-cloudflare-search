@@ -53,6 +53,8 @@ export async function handleRequest(request, env, fetchImpl = fetch) {
   const query = body?.query;
   const limit = body?.limit ?? 10;
   const geo = body?.geo;
+  const pagination = body?.pagination ?? 1;
+  const uule = body?.uule ?? "";
 
   if (typeof query !== "string" || query.trim().length < 1 || query.length > 1024) {
     return json({ error: "invalid_query" }, 400);
@@ -62,6 +64,13 @@ export async function handleRequest(request, env, fetchImpl = fetch) {
   }
   if (geo !== undefined && (typeof geo !== "string" || !/^[A-Za-z]{2}$/.test(geo))) {
     return json({ error: "invalid_geo" }, 400);
+  }
+
+  if (!Number.isInteger(pagination) || pagination < 1 || pagination > 100) {
+    return json({ error: "invalid_pagination" }, 400);
+  }
+  if (typeof uule !== "string" || uule.length > 512) {
+    return json({ error: "invalid_uule" }, 400);
   }
 
   const endpoint = env.GCRAWLAI_SEARCH_URL || DEFAULT_ENDPOINT;
@@ -83,7 +92,9 @@ export async function handleRequest(request, env, fetchImpl = fetch) {
       },
       body: JSON.stringify({
         query: query.trim(),
-        ...(geo ? { geo: geo.toUpperCase() } : {})
+        pagination,
+        geo: geo ? geo.toUpperCase() : "IN",
+        uule
       }),
       signal: AbortSignal.timeout(25000)
     });
