@@ -16,8 +16,8 @@ const request = (body, headers = { authorization: "Bearer test-client-token" }) 
 test("maps GCrawlAI source fields to normalized search results", () => {
   const values = normalizeResults({
     results: [
-      { position: 1, url: "https://example.org/a", title: "A", description: "Snippet A" },
-      { position: 2, url: "javascript:alert(1)", title: "Unsafe" },
+      { position: 1, link: "https://example.org/a", title: "A", description: "Snippet A" },
+      { position: 2, link: "javascript:alert(1)", title: "Unsafe" },
       { position: 3, url: "https://example.org/b", title: "B" }
     ]
   }, 10);
@@ -32,7 +32,7 @@ test("sends authenticated GCrawlAI request and maps response", async () => {
   const result = await handleRequest(request({ query: "agents", limit: 3, geo: "us" }), env, async (url, init) => {
     captured = { url, init };
     return new Response(JSON.stringify({
-      results: [{ url: "https://example.org", title: "Example", description: "Summary", position: 1 }]
+      results: [{ link: "https://example.org", title: "Example", description: "Summary", position: 1 }]
     }), { status: 200 });
   });
   assert.equal(result.status, 200);
@@ -83,4 +83,14 @@ test("forwards pagination and uule to upstream API", async () => {
   });
   assert.equal(result.status, 200);
   assert.deepEqual(sent, { query: "coffee shop", pagination: 2, geo: "IN", uule: "test" });
+});
+
+
+test("limits mapped live GCrawlAI link results", () => {
+  const results = normalizeResults({ results: [
+    { link: "https://example.org/one", title: "One" },
+    { link: "https://example.org/two", title: "Two" },
+    { link: "https://example.org/three", title: "Three" }
+  ] }, 2);
+  assert.deepEqual(results.map(result => result.url), ["https://example.org/one", "https://example.org/two"]);
 });
