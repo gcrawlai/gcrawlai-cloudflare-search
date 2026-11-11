@@ -83,7 +83,6 @@ export async function handleRequest(request, env, fetchImpl = fetch) {
       },
       body: JSON.stringify({
         query: query.trim(),
-        limit,
         ...(geo ? { geo: geo.toUpperCase() } : {})
       }),
       signal: AbortSignal.timeout(25000)
