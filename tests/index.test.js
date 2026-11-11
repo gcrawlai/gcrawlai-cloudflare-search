@@ -38,7 +38,7 @@ test("sends authenticated GCrawlAI request and maps response", async () => {
   assert.equal(result.status, 200);
   assert.equal(captured.url, env.GCRAWLAI_SEARCH_URL);
   assert.equal(captured.init.headers["x-api-key"], env.GCRAWLAI_API_KEY);
-  assert.deepEqual(JSON.parse(captured.init.body), { query: "agents", geo: "US" });
+  assert.deepEqual(JSON.parse(captured.init.body), { query: "agents", pagination: 1, geo: "US", uule: "" });
   assert.deepEqual(await result.json(), {
     query: "agents", count: 1,
     results: [{ url: "https://example.org", title: "Example", description: "Summary" }]
@@ -54,6 +54,7 @@ test("validates query, limit, geo, and JSON", async () => {
   for (const body of [
     { query: "" }, { query: "q", limit: 0 },
     { query: "q", limit: 101 }, { query: "q", geo: "world" },
+    { query: "q", pagination: 0 }, { query: "q", uule: 3 },
     "{bad json"
   ]) {
     const result = await handleRequest(request(body), env);
@@ -71,4 +72,15 @@ test("rejects missing or malformed upstream result arrays", async () => {
   const result = await handleRequest(request({ query: "test" }), env,
     async () => new Response(JSON.stringify({ hello: "world" }), { status: 200 }));
   assert.equal(result.status, 502);
+});
+
+
+test("forwards pagination and uule to upstream API", async () => {
+  let sent;
+  const result = await handleRequest(request({ query: "coffee shop", pagination: 2, geo: "IN", uule: "test" }), env, async (_url, init) => {
+    sent = JSON.parse(init.body);
+    return new Response(JSON.stringify({ results: [] }), { status: 200 });
+  });
+  assert.equal(result.status, 200);
+  assert.deepEqual(sent, { query: "coffee shop", pagination: 2, geo: "IN", uule: "test" });
 });
