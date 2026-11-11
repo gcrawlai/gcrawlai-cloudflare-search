@@ -38,7 +38,7 @@ test("sends authenticated GCrawlAI request and maps response", async () => {
   assert.equal(result.status, 200);
   assert.equal(captured.url, env.GCRAWLAI_SEARCH_URL);
   assert.equal(captured.init.headers["x-api-key"], env.GCRAWLAI_API_KEY);
-  assert.deepEqual(JSON.parse(captured.init.body), { query: "agents", limit: 3, geo: "US" });
+  assert.deepEqual(JSON.parse(captured.init.body), { query: "agents", geo: "US" });
   assert.deepEqual(await result.json(), {
     query: "agents", count: 1,
     results: [{ url: "https://example.org", title: "Example", description: "Summary" }]
